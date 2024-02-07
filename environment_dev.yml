@@ -1,0 +1,23 @@
+name: routedrone
+channels:
+- conda-forge
+dependencies:
+- python=3.11
+- pip==23
+- pip:
+  - jupyter==1.0.0
+  - gurobipy==11.0.0
+  - matplotlib==3.8.2
+  - numpy==1.26.3
+  - pandas==2.2.0
+  - plotly==5.18.0
+  - pyomo==6.7.0
+  - quarto-cli==1.4.549
+  - openpyxl==3.1.2
+  - scikit-learn==1.4.0
+  - ortools==9.8.3296
+  - black==23.12.1          #dev
+  - flake8==7.0.0           #dev
+  - isort==5.13.2           #dev
+  - pylint==3.0.3           #dev
+  - ruff==0.1.14            #dev
