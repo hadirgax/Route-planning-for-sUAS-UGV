@@ -1,0 +1,54 @@
+---
+title: Reproduction of JINT publication
+output: 
+    html_document
+execute:
+    cache: false
+---
+# Init
+```{python, include=F, echo=F}
+import pandas as pd
+import K_means_clustering_2cluster_3clustdist_bounds_one as Km
+points = pd.read_excel("3veh_2clusters_3clustdist_datapts/3veh_2clusters_1bd_2.xlsx")
+```
+
+# Data presentation
+```{python}
+points.describe()
+```
+```{python}
+#|fig.cap: "Plot of the data given by the authors"
+points.plot.scatter("x","y")
+```
+
+Seems valid with the data presented in `3veh_2clusters_3clustdist_plots.pdf`, but only checked visually
+
+# Making K-means points
+
+I have to modify the `clustered_locations` in the `K_means_clustering_2cluster_3clustdist_bounds_one.py` to open the data given in the previous file.
+I remove also the plotting function from the general function to allow just the computing of the centroids
+
+```{python}
+_locations = points[["x","y"]].values
+ctrd, _locations, labels = Km.clustered_locations(_locations=_locations)
+```
+
+Now I plot the centroids through the defined function of the authors
+```{python}
+Km.plot_centroids(points, ctrd, labels)
+```
+
+# Computing the UGV route
+I modify the `main` to avoid regenerating the data and using the given data by the authors.
+
+```{python}
+import UGV_route_2cluster_3clustdist_bounds_one as UGV
+UGV.main(_locations=_locations)
+```
+
+I did not find any script to do the plotting of the solution of the UGV route.
+
+```{python}
+
+```
+
