@@ -1,5 +1,4 @@
-data/**
 *.pyc
 *.png
-*.xlsx
 *.pdf
+*.html
