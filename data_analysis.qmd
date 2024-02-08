@@ -8,7 +8,9 @@ execute:
 # Init
 ```{python, include=F, echo=F}
 import pandas as pd
+import matplotlib.pyplot  as plt
 import K_means_clustering_2cluster_3clustdist_bounds_one as Km
+import UGV_route_2cluster_3clustdist_bounds_one as UGV
 points = pd.read_excel("3veh_2clusters_3clustdist_datapts/3veh_2clusters_1bd_2.xlsx")
 ```
 
@@ -42,13 +44,22 @@ Km.plot_centroids(points, ctrd, labels)
 I modify the `main` to avoid regenerating the data and using the given data by the authors.
 
 ```{python}
-import UGV_route_2cluster_3clustdist_bounds_one as UGV
-UGV.main(_locations=_locations)
+import importlib
+importlib.reload(UGV_route_2cluster_3clustdist_bounds_one)
+routes, solution, routing, manager = UGV.main(_locations=_locations)
 ```
 
+The `route_location` is the same as the centroids of the K-means
 I did not find any script to do the plotting of the solution of the UGV route.
 
 ```{python}
-
+x_route = [ctrd[i][0] for i in routes]
+y_route = [ctrd[i][1] for i in routes]
+Km.plot_centroids(points, ctrd, labels)
+plt.title("Solution for the UGV, {} with distance {}".format(routes, solution.ObjectiveValue()))
+plt.plot(x_route, y_route)
+plt.show()
 ```
+
+The figure is not very clear but the UGV starts on the red point
 

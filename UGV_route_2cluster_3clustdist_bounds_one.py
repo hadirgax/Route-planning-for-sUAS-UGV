@@ -144,7 +144,7 @@ def main(_locations=None, random_seed=None):
 
 
     routes = get_routes(solution, routing, manager)
-    ugv_route = routes.pop(0)
+    ugv_route = routes[0] #[MOD] changes pop(0) by [0] to have the solution in the return
     route_location = []
     # Display the routes.
     #[MOD] I remove those line to facilitate integration in markdown notebook
@@ -152,7 +152,9 @@ def main(_locations=None, random_seed=None):
     #[MOD]      print('Route', i, route)
     for j in range(len(ugv_route)):
         route_location.append(location[ugv_route[j]])
-    return route_location, mission_locs
+    #[MOD] I remove this return because it is exactly the input (kmeans centroids, points to visit by UAV)
+    #[MOD] return route_location, mission_locs
+    return routes, solution, routing, manager
 
 
 if __name__ == '__main__':
