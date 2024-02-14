@@ -11,6 +11,7 @@ import pandas as pd
 import matplotlib.pyplot  as plt
 import K_means_clustering_2cluster_3clustdist_bounds_one as Km
 import UGV_route_2cluster_3clustdist_bounds_one as UGV
+import MCsim_3veh_2cluster_3clustdist_bounds_one as MCsim
 points = pd.read_excel("3veh_2clusters_3clustdist_datapts/3veh_2clusters_1bd_2.xlsx")
 ```
 
@@ -44,9 +45,7 @@ Km.plot_centroids(points, ctrd, labels)
 I modify the `main` to avoid regenerating the data and using the given data by the authors.
 
 ```{python}
-import importlib
-importlib.reload(UGV_route_2cluster_3clustdist_bounds_one)
-routes, solution, routing, manager = UGV.main(_locations=_locations)
+UGV_route, mission_locations, routes, solution, routing, manager = UGV.main(_locations=_locations)
 ```
 
 The `route_location` is the same as the centroids of the K-means
@@ -63,3 +62,11 @@ plt.show()
 
 The figure is not very clear but the UGV starts on the red point
 
+# Finding the drone routes by local search heutistics
+
+I modify the code of `MCsim_3veh_2cluster_3clustdist_bounds_one.py` to help understanding and usage of the code. There is no guide on how to use the code but there was a outside loop (now in the main function) and a main funtion (now on the optimize function), I think the usage was to call the loop and the the main.
+```{r}
+import importlib; importlib.reload(MCsim)
+mission_locations, interpolated_UGV_stops = MCsim.main(nb_exp=1, list_locations=[mission_locations])
+MCsim.optimize(mission_locations, interpolated_UGV_stops)
+```

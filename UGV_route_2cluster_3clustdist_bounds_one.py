@@ -152,9 +152,9 @@ def main(_locations=None, random_seed=None):
     #[MOD]      print('Route', i, route)
     for j in range(len(ugv_route)):
         route_location.append(location[ugv_route[j]])
-    #[MOD] I remove this return because it is exactly the input (kmeans centroids, points to visit by UAV)
+    #[MOD] I change this return to have the solutions
     #[MOD] return route_location, mission_locs
-    return routes, solution, routing, manager
+    return route_location, mission_locs, routes, solution, routing, manager
 
 
 if __name__ == '__main__':
