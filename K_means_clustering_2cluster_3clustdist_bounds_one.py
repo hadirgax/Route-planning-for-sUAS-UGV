@@ -9,22 +9,23 @@ import matplotlib.pyplot as plt
 import random_mission_points_distrib_3clusters_bounds_one
 
 
-def clustered_locations(_locations=None, random_seed=None):
+def clustered_locations(target_locations=None, random_seed=None):
     """!
     Compute the centroids through Kmeans algorithm
     [MOD] put both parameters as optional
+    [MOD] modified _location to mission_locations since it represents the tarfet
     @param random_seed [int]: random seed to generate the number
-    @param _locations array(tuple): locations to use as x,y coordinates [MOD]
-    @out ctrd array: coordinates of the centroids
-    @out _locations
-    @out labels array: Attribution array of the points to the clusters [MOD]
+    @param target_locations [array(tuple)]: locations to use as x,y coordinates [MOD]
+    @out ctrd [array]: coordinates of the centroids 
+    @out target_locations [array(tuple)]: locations of target as x,y coordinates
+    @out labels [array]: Attribution array of the points to the clusters [MOD]
     """
-    if random_seed is None and _locations is None:
+    if random_seed is None and target_locations is None:
         raise ValueError("Provide at least one of _locations or random seed")
-    elif _locations is None:
-        _locations = random_mission_points_distrib_3clusters_bounds_one.random_locations(random_seed)
+    elif target_locations is None:
+        target_locations = random_mission_points_distrib_3clusters_bounds_one.random_locations(random_seed)
 
-    df = pd.DataFrame(_locations, columns=['x', 'y'])
+    df = pd.DataFrame(target_locations, columns=['x', 'y'])
 
     kmeans = KMeans(n_clusters=2)
     kmeans.fit(df)
@@ -37,7 +38,7 @@ def clustered_locations(_locations=None, random_seed=None):
 
     for i in range(len(centroids)):
         ctrd.append((centroids[i][0], centroids[i][1]))
-    return ctrd, _locations, labels
+    return ctrd, target_locations, labels
 
 def plot_centroids(df, centroids, labels):
     """

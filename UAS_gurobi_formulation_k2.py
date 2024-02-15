@@ -12,7 +12,8 @@ Q = 30000  # vehicle fuel capacity
 no_of_vehicles = 3  # free to modify
 vehicle_speed = 33
 
-df = pd.read_excel('3veh_2clusters_1bd_2.xlsx', engine='openpyxl')
+# [MOD] changed to correct path
+df = pd.read_excel('3veh_2clusters_3clustdist_datapts/3veh_2clusters_1bd_2.xlsx', engine='openpyxl')
 Y, X = list(df["Y"]), list(df["X"])
 coordinates = np.column_stack((X, Y))
 et, lt, st = list(df["St"]), list(df["Et"]), list(df["Sert"])

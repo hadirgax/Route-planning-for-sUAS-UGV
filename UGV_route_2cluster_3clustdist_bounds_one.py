@@ -77,19 +77,23 @@ def get_routes(solution, routing, manager):
     return routes
 
 
-def main(_locations=None, random_seed=None):
+def main(target_locations=None, random_seed=None):
     """
     main function to run the optimization
     [MOD] put both argument as optional to use existing data without regenerating
     @param random_seed [int]: random seed to generate the number
-    @param _locations array(tuple): locations to use as x,y coordinates [MOD]
-    @out TODO
-    @out TODO
+    @param target_locations [array(tuple)]: locations to use as x,y coordinates [MOD]
+    @out route_location [array(tuple)]: array of centroids ordered by visit order for UGV
+    @out target_locations [array(tuple)]: locations of target as x,y coordinates
+    @out solution [solution]: solution of ortools on the routing
     """
-    location, mission_locs, _ = K_means_clustering_2cluster_3clustdist_bounds_one.clustered_locations(_locations=_locations, random_seed=random_seed)
+    # [MOD] Create and clusterise the locations and centroids
+    ctrd, target_locations, _ = K_means_clustering_2cluster_3clustdist_bounds_one.clustered_locations(target_locations=target_locations, random_seed=random_seed)
+
+    # [MOD] rank the centroids depending on their x+y coordinates 
     nodes = []
-    for i in range(len(location)):
-        nodes.append(location[i][0] + location[i][1])
+    for i in range(len(ctrd)):
+        nodes.append(ctrd[i][0] + ctrd[i][1])
     max_value = max(nodes)
     node = nodes.index(max_value)
 
@@ -101,7 +105,8 @@ def main(_locations=None, random_seed=None):
     """Entry point of the program."""
     # Instantiate the data problem.
     # data = create_data_model() # [MOD] Trying to simplify the code
-    data = {"locations": location, 'num_vehicles': 1, 'starts': [0], 'ends': [node]}
+    # [MOD] dict with the centroids, and the x+y coordinates
+    data = {"locations": ctrd, 'num_vehicles': 1, 'starts': [0], 'ends': [node]}
 
     # Create the routing index manager.
     manager = pywrapcp.RoutingIndexManager(len(data['locations']),
@@ -110,6 +115,7 @@ def main(_locations=None, random_seed=None):
     # Create Routing Model.
     routing = pywrapcp.RoutingModel(manager)
 
+    # [MOD] Create the distance matrix between two points as a dict{dict}
     distance_matrix = compute_euclidean_distance_matrix(data['locations'])
 
     def distance_callback(from_index, to_index):
@@ -143,18 +149,20 @@ def main(_locations=None, random_seed=None):
     #[MOD]  print_solution(data, manager, routing, solution)
 
 
+    #[MOD] get the route of the truck as a 2d array giving the route of truck i
     routes = get_routes(solution, routing, manager)
-    ugv_route = routes[0] #[MOD] changes pop(0) by [0] to have the solution in the return
+    ugv_route = routes[0] #[MOD] changes pop(0) by [0] to be consistent, we have only one truck
+    # [MOD] route_location will contain the centroids in order of appearence in the trip
     route_location = []
     # Display the routes.
     #[MOD] I remove those line to facilitate integration in markdown notebook
     #[MOD] for i, route in enumerate(routes):
     #[MOD]      print('Route', i, route)
     for j in range(len(ugv_route)):
-        route_location.append(location[ugv_route[j]])
+        route_location.append(ctrd[ugv_route[j]])
     #[MOD] I change this return to have the solutions
     #[MOD] return route_location, mission_locs
-    return route_location, mission_locs, routes, solution, routing, manager
+    return route_location, target_locations, solution
 
 
 if __name__ == '__main__':

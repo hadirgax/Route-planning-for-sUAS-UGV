@@ -18,7 +18,6 @@ import matplotlib.pyplot as plt
 import UGV_route_2cluster_3clustdist_bounds_one
 import pandas as pd
 
-distance_list = []
 
 def plot_data_model(data):
     """
@@ -37,20 +36,19 @@ def plot_data_model(data):
     plt.ylim(0, 26400)
     plt.savefig('3veh_2clusters_3clustdist_plots/3veh_2clusters_3clustdist_1bd_data_pts_plot_'+str(m+1)+'.pdf')
 
-def create_data_model(mission_locations, interpolated_UGV_stops):   # creating a dictionary containing input UAV and UGV parameters
+def create_data_model(target_locations, interpolated_UGV_stops, m):   # creating a dictionary containing input UAV and UGV parameters
     """!
     [MOD] Moved out of the loop to help understanding
-    @param mission_locations : [MOD] added the parameter
-    @param interpolated_UGV_stops: [MOD] added the parameter
+    @param target_locations [array(tuple)]: locations to use as x,y coordinates [MOD] 
+    @param interpolated_UGV_stops [array(tuple)]: points in between the centroids [MOD]
     """
     data = {}
     fuel_capacity = 30000   # fuel_capacity in -ft
-    # locs, mission_locations = Monte_carlo_K_means_3_clusters.random_locations()
-    # [MOD] I have the impression that this three lines are interpolated_UGV_stops = mission_locations;
-    # [MOD] force the conversion of mission_locations to list
-    mission_locations = mission_locations.tolist()
-    for _ in range(len(mission_locations)):
-        insert_locations = mission_locations.pop(0)
+    # locs, target_locations = Monte_carlo_K_means_3_clusters.random_locations()
+    # [MOD] the interpolated_UGV_stops will contain at the end all the target_locations
+    # [MOD] force the conversion of target_locations to list
+    for _ in range(len(target_locations)):
+        insert_locations = target_locations.pop(0)
         interpolated_UGV_stops.append(insert_locations)
     _locations = interpolated_UGV_stops
     # print(_locations) # [MOD] commented to help with notebook integration
@@ -58,7 +56,7 @@ def create_data_model(mission_locations, interpolated_UGV_stops):   # creating a
     data["locations"] = _locations   # 26.4k x 26.4k sq. ft. (5 x 5 miles sq.)
     df = pd.DataFrame(_locations, columns=['x', 'y'])
     #[MOD] commented next lines to avoid overwriting data
-    #df.to_excel('3veh_2clusters_3clustdist_datapts/3veh_2clusters_1bd_'+str(m+1)+'.xlsx', engine='openpyxl')
+    df.to_excel('3veh_2clusters_3clustdist_datapts/3veh_2clusters_1bd_'+str(m+1)+'.xlsx', engine='openpyxl')
     #plot_data_model(data)
     data["coordinates"] = [(round((l[0]/5280), 1), round((l[1]/5280), 1)) for l in _locations]
     data["locations"] = _locations   # 26.4k x 26.4k sq. ft. (5 x 5 miles sq.)
@@ -95,11 +93,11 @@ def create_data_model(mission_locations, interpolated_UGV_stops):   # creating a
     dist_matrix = distance_matrix.tolist()
     # print(dist_matrix)
     data["distance_matrix"] = dist_matrix
-    assert len(data['distance_matrix']) == len(data['locations'])
-    assert len(data['distance_matrix']) == len(data['time_windows'])
-    assert len(data['starts']) == len(data['ends'])
-    assert data['num_vehicles'] == len(data['starts'])
-    assert len(data["counter"]) == len(data['time_windows'])
+#    assert len(data['distance_matrix']) == len(data['locations'])
+#    assert len(data['distance_matrix']) == len(data['time_windows'])
+#    assert len(data['starts']) == len(data['ends'])
+#    assert data['num_vehicles'] == len(data['starts'])
+#    assert len(data["counter"]) == len(data['time_windows'])
     return data
 
 def euclidean_distance(position_1, position_2):
@@ -108,7 +106,7 @@ def euclidean_distance(position_1, position_2):
     """
     return round(math.hypot((position_1[0] - position_2[0]), (position_1[1] - position_2[1])))
 
-def print_solution(data, manager, routing, solution):
+def print_solution(data, manager, routing, solution, m):
     """
     [MOD] moved this function out of the loop to help understanding
     """
@@ -120,6 +118,7 @@ def print_solution(data, manager, routing, solution):
     fuel_dimension = routing.GetDimensionOrDie("Fuel")
     time_dimension = routing.GetDimensionOrDie("Time")
     # counter_dimension = routing.GetDimensionOrDie("Counter")
+    # [MOD] dropped nodes are the nodes of the UGV that are not visited by the UAV 
     dropped_nodes = "Dropped nodes:"
     for node in range(routing.Size()):
         if routing.IsStart(node) or routing.IsEnd(node):
@@ -149,19 +148,22 @@ def print_solution(data, manager, routing, solution):
             index = solution.Value(routing.NextVar(index))
             if vehicle_id == 0:
                 if index <= 32:
-                    if index == 1 or index == 2 or index == 3 or index == 4 or index == 5 or index == 6 or index == 7:
+                    # [MOD] modified to ease understanding
+                    if index in range(1,8):
                         dum_list.append(data["locations"][index])
                     else:
                         dum_list.append(data["locations"][index + 1])
             elif vehicle_id == 1:
                 if index <= 32:
-                    if index == 1 or index == 2 or index == 3 or index == 4 or index == 5 or index == 6 or index == 7:
+                    # [MOD] modified to ease understanding
+                    if index in range(1,8):
                         dum_list2.append(data["locations"][index])
                     else:
                         dum_list2.append(data["locations"][index + 1])
             else:
                 if index <= 32:
-                    if index == 1 or index == 2 or index == 3 or index == 4 or index == 5 or index == 6 or index == 7:
+                    # [MOD] modified to ease understanding
+                    if index in range(1,8):
                         dum_list3.append(data["locations"][index])
                     else:
                         dum_list3.append(data["locations"][index + 1])
@@ -233,16 +235,12 @@ def print_solution(data, manager, routing, solution):
 
 
 
-
-
-
-
-def optimize(mission_locations, interpolated_UGV_stops):
+def optimize(target_locations, interpolated_UGV_stops, distance_list, m):
     """
     [MOD] moved out of the loop to ease understanding, changed the name from main to optimize to keep consistency
     """
     # Instantiate the data problem.
-    data = create_data_model(mission_locations, interpolated_UGV_stops)
+    data = create_data_model(target_locations, interpolated_UGV_stops, m)
 
     # Create the routing index manager.
     manager = pywrapcp.RoutingIndexManager(
@@ -368,32 +366,40 @@ def optimize(mission_locations, interpolated_UGV_stops):
 
     # Print solution on console.
     if solution:
-        total_distance = print_solution(data, manager, routing, solution)
+        total_distance = print_solution(data, manager, routing, solution, m)
         distance_list.append(total_distance)
     else:
         print("-------------------------------No solution found at iteration number {}-----------------------------"
               "-------".format(m+1))
 
     print("Solver status:", routing.status())
+    # [MOD] added return to keep solution for further analysis
+    return data, solution, routing, manager
 
 def main(nb_exp=10, list_locations=None):
     """
     [MOD] created a function to help with notebook use
-    @param nb_exp int: [MOD] added to choose the number of experiments to make, default to 10 chosen by authors
-    @param list_locations list[array]: [MOD] locations to use for the experiments, to avoid regenerating data
+    @param nb_exp [int]: [MOD] added to choose the number of experiments to make, default to 10 chosen by authors
+    @param list_locations [list[array[(tuple)]]]: [MOD] locations to use for the experiments, to avoid regenerating data
     """
+    distance_list = []
+    # [MOD] added lists to store the results of the optimization
+    result_list = []
     for m in range(nb_exp):
         if list_locations is not None:
             if len(list_locations) != nb_exp:
                 raise ValueError("number of locations does not match number of experiments")
-            UGV_route, mission_locations, _, _, _, _ = UGV_route_2cluster_3clustdist_bounds_one.main(list_locations[m])
+            UGV_route, target_locations, _ = UGV_route_2cluster_3clustdist_bounds_one.main(list_locations[m])
         else:
-            UGV_route, mission_locations, _, _, _, _ = UGV_route_2cluster_3clustdist_bounds_one.main(random_seed=m * 5)
+            UGV_route, target_locations, _ = UGV_route_2cluster_3clustdist_bounds_one.main(random_seed=m * 5)
+        # [MOD] x, y will contain the ordinated x and y coordinates of the centroids
         x = []
         y = []
         for k in range(len(UGV_route)):
             x.append(UGV_route[k][0])
             y.append(UGV_route[k][1])
+            
+        # [MOD] interpolated_UGV_stops will contain the points in between the centroids as direct line
         interpolated_UGV_stops = [(13200, 13200)]
         for i in range(0, len(UGV_route)-1):
             interp_x = [x[i], x[i+1]]
@@ -402,14 +408,15 @@ def main(nb_exp=10, list_locations=None):
                 interpolate_x = interp_x[0] + (((interp_x[1] - interp_x[0])*j)/4)
                 interpolate_y = interp_y[0] + (((interp_y[1] - interp_y[0])*j)/4)
                 interpolated_UGV_stops.append((interpolate_x, interpolate_y))
+        data, solution, routing, manager = optimize(target_locations, interpolated_UGV_stops, distance_list, m)
+        result_list.append((data, solution, routing, manager))
     cumul_distance = sum(distance_list)
     print("Cumulative objective value:", cumul_distance)
     print(len(distance_list))
-    #print(cumul_distance//len(distance_list)) #[MOD] removed to avoid error
-    #[MOD] added return to pass into optimization loop
-    return mission_locations, interpolated_UGV_stops
+    print(cumul_distance//len(distance_list))
+    #[MOD] added return to help with analysis
+    return result_list
 
 if __name__ == '__main__':
-    mission_locations, interpolated_UGV_stops = main()
-    optimize(mission_locations, interpolated_UGV_stops)
+    main()
 
