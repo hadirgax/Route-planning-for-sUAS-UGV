@@ -1,0 +1,13 @@
+
+version: '3.7'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      - GRB_CLIENT_LOG=3
+    volumes:
+      - ../:/workspace
+      - ../gurobi.lic:/opt/gurobi/gurobi.lic:ro

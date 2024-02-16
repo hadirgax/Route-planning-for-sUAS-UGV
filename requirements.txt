@@ -1,6 +1,7 @@
-gurobipy==9.1.2
-pandas==2.0.3
+gurobipy==11.0.0
+pandas==2.2.0
 numpy==1.26.4
-ortools==9.1.9490
-matplotlib==3.8.0
-scikit-learn==1.1.2
+ortools==9.8.3296
+matplotlib==3.8.2
+scikit-learn==1.4.0
+openpyxl==3.1.2
